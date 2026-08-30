@@ -11,7 +11,6 @@ A parameterized dual-clock Asynchronous FIFO (First-In, First-Out) buffer implem
   - [Clock Domain Crossing (CDC) & Metastability](#1-clock-domain-crossing-cdc--metastability)
   - [Gray Code Encoding](#2-gray-code-encoding)
   - [Full and Empty Generation](#3-full-and-empty-condition-logic)
-- [Module Breakdown](#module-breakdown)
 - [Simulation & Verification](#simulation--verification)
 - [Conclusion](#conclusion)
 
@@ -105,7 +104,7 @@ Gray code solves this by enforcing a unit-distance code property: **only 1 bit c
 
 
 
-## FIFO Full and Empty Flag Generation Theory
+## FIFO Full and Empty Flag Generation 
 
 In an Asynchronous FIFO, status flags indicate buffer boundaries to prevent data overwrite (**overflow**) and reading invalid data (**underflow**). Because read and write operations execute on separate, unsynchronized clock domains, flag generation relies on cross-domain pointer comparisons using extended Gray-coded vectors.
 
