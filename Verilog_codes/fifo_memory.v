@@ -1,15 +1,14 @@
 `timescale 1ns / 1ps
-//==============================================================
+
 // Asynchronous FIFO Memory
-//==============================================================
 // Stores FIFO data and provides:
 //   - Write operation in the write clock domain
 //   - Read operation using the read address
 //
 // DATA_SIZE : Width of each data word
 // ADDR_SIZE : Number of address bits
-//             FIFO depth = 2^ADDR_SIZE
-//==============================================================
+// FIFO depth = 2^ADDR_SIZE
+
 
 module fifo_memory #(
     parameter DATA_SIZE = 8,
