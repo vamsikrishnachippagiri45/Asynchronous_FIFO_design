@@ -151,7 +151,7 @@ Because pointer exchange relies on multi-stage synchronizers across clock domain
 
 ---
 
-## Simulation and Verification 
+## Simulation & Verification 
 
 The asynchronous FIFO testbench is designed to validate cross-clock domain data integrity, boundary flag assertions, and overflow/underflow protection under independent, asynchronous clock frequencies.
 <img width="1920" height="1020" alt="Screenshot 2026-08-30 183903" src="https://github.com/user-attachments/assets/ca26a083-dd37-4b6b-b405-1b75a815f97b" />
