@@ -55,6 +55,10 @@ credits : vlsiverify.com
   * Parameterized dual-port RAM array with a capacity of 2^ADDR_SIZE \times DATA_SIZE bits.
   * Performs synchronous write operations on the rising edge of `write_clk` when `write_req` is asserted and the FIFO is not full.
   * Provides asynchronous (combinational) read access driven directly by `read_addr`.
+ 
+  <img width="1907" height="371" alt="image" src="https://github.com/user-attachments/assets/adfa6952-1b01-43db-bf70-3b15d743cf06" />
+
+
 ---
 
 
