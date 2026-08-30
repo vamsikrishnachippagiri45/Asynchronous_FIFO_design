@@ -1,4 +1,4 @@
-# Asynchronous FIFO Design (CDC Safe)
+# Asynchronous FIFO Design 
 
 A parameterized dual-clock Asynchronous FIFO (First-In, First-Out) buffer implemented in Verilog HDL. This design safely transfers data across asynchronous Clock Domains (CDC) using Gray code pointer conversion and 2-Flip-Flop (2-FF) synchronizers.
 
