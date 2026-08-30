@@ -112,7 +112,7 @@ In an Asynchronous FIFO, status flags indicate buffer boundaries to prevent data
 
 ### Pointer Width Extension
 
-For a FIFO of depth $2^N$ (where $N = \text{ADDR\_SIZE}$):
+For a FIFO of depth $2^N$ :
 
 * Memory locations require an $N$-bit address index ($0 \text{ to } 2^N - 1$).
 * Pointers are deliberately sized to **$N + 1$ bits**.
