@@ -53,17 +53,8 @@ credits : vlsiverify.com
   * **Write-to-Read Synchronizer:** Samples `write_ptr_gray` using `read_clk` across two cascaded D-flip-flops to produce `write_ptr_gray_sync`, mitigating metastability in the read domain.
 
 * **`fifo_memory` (Storage Core):**
-  * Parameterized dual-port RAM array with a capacity of $2^{\text{ADDR\_SIZE}} \times \text{DATA\_SIZE}$ bits.
+  * Parameterized dual-port RAM array with a capacity of 2^ADDR_SIZE \times DATA_SIZE bits.
   * Performs synchronous write operations on the rising edge of `write_clk` when `write_req` is asserted and the FIFO is not full.
   * Provides asynchronous (combinational) read access driven directly by `read_addr`.
-
 ---
 
-### Signal Dataflow Summary
-
-| Signal | Source Domain | Destination Domain | Purpose |
-| :--- | :--- | :--- | :--- |
-| `write_ptr_gray` | `write_clk` | `read_clk` (via 2-FF Sync) | Conveys write progress to read domain to evaluate `fifo_empty`. |
-| `read_ptr_gray` | `read_clk` | `write_clk` (via 2-FF Sync) | Conveys read progress to write domain to evaluate `fifo_full`. |
-| `write_addr` | `write_clk` | `fifo_memory` | Memory write address bus ($0 \text{ to } 2^{\text{ADDR\_SIZE}}-1$). |
-| `read_addr` | `read_clk` | `fifo_memory` | Memory read address bus ($0 \text{ to } 2^{\text{ADDR\_SIZE}}-1$). |
