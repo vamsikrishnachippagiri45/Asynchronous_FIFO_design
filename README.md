@@ -29,7 +29,7 @@ In digital systems, transmitting data between sub-blocks operating on independen
 * **Independent Clock Domains:** Completely decoupled read and write operations.
 * **Metastability Mitigation:** 2-FF synchronizer chain for safe cross-domain pointer propagation.
 * **Multi-Bit Glitch Prevention:** Gray-coded read and write pointers ensure single-bit transitions per increment.
-* **Parameterized:** Configurable word width (`DATA_SIZE`) and FIFO depth ($2^{\text{ADDR\_SIZE}}$).
+* **Parameterized:** Configurable word width and FIFO depth.
 
 ---
 
