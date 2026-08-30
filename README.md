@@ -148,3 +148,53 @@ Because pointer exchange relies on multi-stage synchronizers across clock domain
 
 * **Pessimistic Empty:** When data is written, the empty flag may remain asserted for 2 read clock cycles longer than strictly necessary. This prevents reading un-stabilized data and is fully safe against underflow.
 * **Pessimistic Full:** When data is read, the full flag may remain asserted for 2 write clock cycles longer than strictly necessary. This temporarily throttles writes without corrupting previously stored data and is fully safe against overflow.
+
+---
+
+## Simulation and Verification 
+
+The asynchronous FIFO testbench is designed to validate cross-clock domain data integrity, boundary flag assertions, and overflow/underflow protection under independent, asynchronous clock frequencies.
+<img width="1920" height="1020" alt="Screenshot 2026-08-30 183903" src="https://github.com/user-attachments/assets/ca26a083-dd37-4b6b-b405-1b75a815f97b" />
+
+
+
+### Testbench Setup & Parameters
+
+* **Write Clock Domain (`write_clk`):** Configured with a period of **10 ns** ($f = 100\text{ MHz}$).
+* **Read Clock Domain (`read_clk`):** Configured with a period of **16 ns** ($f = 62.5\text{ MHz}$).
+* **FIFO Dimensions:** Configured with `DATA_SIZE = 8` (8-bit data width) and `ADDR_SIZE = 3` (FIFO Depth = $2^3 = 8$ words).
+
+
+### Verification Phases & Waveform Analysis
+
+#### Phase 1: Asynchronous Reset Initialization (0 ns – 30 ns)
+* Active-low reset signals (`write_rst_n`, `read_rst_n`) are asserted low at time $t = 0\text{ ns}$.
+* Both write and read pointer registers clear to zero.
+* **Flag Status:** `fifo_empty` initializes to logic **1**, while `fifo_full` initializes to logic **0**.
+* At $t = 30\text{ ns}$, reset is deasserted high synchronously with the clock domains to begin functional testing.
+
+
+#### Phase 2: Sequential Burst Write & Empty Deassertion (30 ns – 110 ns)
+* Data values `0` through `7` are driven sequentially onto `write_data` with `write_req` asserted on consecutive negative edges of `write_clk`.
+* After the first write operation, the updated write pointer traverses the 2-FF synchronizer into the read domain.
+* **Empty Flag Behavior:** After the 2-stage synchronizer latency, `fifo_empty` deasserts from `1` to `0` (observed at ~68 ns), indicating valid readable data exists in memory.
+
+
+
+#### Phase 3: FIFO Full Assertion & Overflow Protection (110 ns – 150 ns)
+* Upon writing the 8th word (index `7`), the FIFO reaches its maximum capacity of 8 words.
+* The write pointer logic evaluates `fifo_full_val` and asserts `fifo_full = 1` at ~115 ns.
+* **Overflow Protection Test:** At $t = 125\text{ ns}$, an illegal write attempt (`write_data = 8'hFF`) is applied while `fifo_full` is high. 
+* Internal write-enable gating prevents `write_bin` from incrementing, protecting the stored data words (`0` to `7`) from being overwritten.
+
+
+#### Phase 4: Sequential Read & Full Deassertion (150 ns – 280 ns)
+* The read interface initiates continuous read cycles by asserting `read_req = 1` on negative edges of `read_clk`.
+* Data is extracted in exact First-In, First-Out order: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`.
+* **Full Flag Deassertion:** Once reading commences, the updated read pointer is synchronized back into the write domain, clearing `fifo_full` back to `0` at ~205 ns.
+
+
+#### Phase 5: FIFO Empty Assertion & Underflow Protection (280 ns – 341 ns)
+* After reading word `7`, all 8 stored words have been consumed from the buffer.
+* The read pointer matches the synchronized write pointer, causing `fifo_empty` to assert high (`1`) at ~285 ns.
+* **Underflow Protection Test:** Subsequent read attempts while `fifo_empty = 1` are blocked by internal gating logic, preventing invalid reads and pointer corruption before simulation finishes at 341 ns.
