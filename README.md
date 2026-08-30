@@ -93,7 +93,7 @@ To provide the required settling time ($t_r$), a 2-Flip-Flop (2-FF) synchronizer
 * **Settling Window:** The output of Stage 1 is given a full clock period ($T_{clk}$) to decay to a deterministic logic `0` or `1`.
 * **Stage 2 (Resolution Flip-Flop):** Samples the now-stabilized output of Stage 1, delivering a clean, glitch-free, synchronized signal to downstream logic.
 
-### Why Gray Code is Required with 2-FF Synchronizers
+## Why Gray Code is Required with 2-FF Synchronizers
 A 2-FF synchronizer resolves metastability exclusively for single-bit signals. If standard binary counters are passed across domains:
 * Multi-bit transitions occur simultaneously (e.g., binary `3` (`011`) transitioning to `4` (`100`) toggles 3 bits).
 * Due to unavoidable layout routing skews, wire delays, and PVT variations, individual bits arrive at slightly different instants.
@@ -102,3 +102,50 @@ A 2-FF synchronizer resolves metastability exclusively for single-bit signals. I
 Gray code solves this by enforcing a unit-distance code property: **only 1 bit changes per increment** (e.g., Gray `3` (`010`) to Gray `4` (`110`) toggles only the MSB). If the destination clock samples mid-transition:
 * It captures either the old pointer value (`010`) or the new pointer value (`110`).
 * Both outcomes represent valid sequential states. An old pointer simply introduces a 1-cycle latency in flag deassertion (a safe, pessimistic condition) without ever corrupting the FIFO state.
+
+
+
+## FIFO Full and Empty Flag Generation Theory
+
+In an Asynchronous FIFO, status flags indicate buffer boundaries to prevent data overwrite (**overflow**) and reading invalid data (**underflow**). Because read and write operations execute on separate, unsynchronized clock domains, flag generation relies on cross-domain pointer comparisons using extended Gray-coded vectors.
+
+
+### Pointer Width Extension
+
+For a FIFO of depth $2^N$ (where $N = \text{ADDR\_SIZE}$):
+
+* Memory locations require an $N$-bit address index ($0 \text{ to } 2^N - 1$).
+* Pointers are deliberately sized to **$N + 1$ bits**.
+* The lower $N$ bits select the active memory address, while the extra Most Significant Bit (MSB) acts as a **wrap-around / phase indicator**.
+* This extra bit allows the logic to distinguish between an **empty** condition and a **full** condition, both of which map to the same base memory address.
+
+
+### FIFO Empty Condition Logic
+
+* **Clock Domain:** Evaluated purely within the **Read Clock Domain** (`read_clk`).
+* **Operational Meaning:** The FIFO is empty when the read pointer catches up to the write pointer, meaning all data written into the buffer has been read out.
+* **Mechanism:** The local Gray-coded read pointer is compared directly against the synchronized Gray-coded write pointer.
+* **Logic Condition:** An exact bit-for-bit equality across all $N + 1$ bits:
+  * Both the wrap bit (MSB) and the lower memory index bits are identical.
+  * When `read_ptr_gray == write_ptr_gray_sync`, the `fifo_empty` flag asserts immediately.
+
+### FIFO Full Condition Logic
+
+* **Clock Domain:** Evaluated purely within the **Write Clock Domain** (`write_clk`).
+* **Operational Meaning:** The FIFO is full when the write pointer writes through the entire buffer, wraps around, and catches up to the read pointer from behind.
+* **Binary Behavior:** In a standard binary representation, "Full" occurs when the write pointer has wrapped once (MSB is inverted) while pointing to the exact same physical memory offset as the read pointer (all lower $N$ bits match).
+* **Gray Code Transformation:** 
+  Due to the mathematical property of the Binary-to-Gray conversion ($G = B \oplus [B \gg 1]$):
+  1. Inverting the MSB of a binary vector inverts both the **MSB** and the **second MSB** ($N\text{-th}$ and $(N-1)\text{-th}$ bits) of its Gray code counterpart.
+  2. The remaining lower bits ($N-2$ down to $0$) remain completely unchanged.
+* **Logic Condition:** The `fifo_full` flag asserts when:
+  * The **MSB** of the write pointer is the inverse of the synchronized read pointer's MSB.
+  * The **second MSB** of the write pointer is the inverse of the synchronized read pointer's second MSB.
+  * All remaining **Least Significant Bits (LSBs)** are identical between both pointers.
+
+### Pessimistic Flag Behavior & Safety
+
+Because pointer exchange relies on multi-stage synchronizers across clock domains, the synchronized pointer always lags the real-time pointer by 2 clock cycles:
+
+* **Pessimistic Empty:** When data is written, the empty flag may remain asserted for 2 read clock cycles longer than strictly necessary. This prevents reading un-stabilized data and is fully safe against underflow.
+* **Pessimistic Full:** When data is read, the full flag may remain asserted for 2 write clock cycles longer than strictly necessary. This temporarily throttles writes without corrupting previously stored data and is fully safe against overflow.
