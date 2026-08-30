@@ -1,7 +1,3 @@
-# Asynchronous_FIFO_design
-This project demonstrates the design of an asynchronous FIFO for reliable data transfer between independent clock domains.
-
-
 # Asynchronous FIFO Design (CDC Safe)
 
 A parameterized dual-clock Asynchronous FIFO (First-In, First-Out) buffer implemented in Verilog HDL. This design safely transfers data across asynchronous Clock Domains (CDC) using Gray code pointer conversion and 2-Flip-Flop (2-FF) synchronizers.
@@ -33,38 +29,5 @@ In digital systems, transmitting data between sub-blocks operating on independen
 
 ---
 
-## Architecture & Block Diagram
-
-```text
-       WRITE DOMAIN (write_clk)                   READ DOMAIN (read_clk)
-   +------------------------------+           +------------------------------+
-   |                              |           |                              |
-   |   +----------------------+   |           |   +----------------------+   |
-   |   |   write_ptr_full     |   |           |   |   read_ptr_empty     |   |
-   |   |  - Binary & Gray Ptr |   |           |   |  - Binary & Gray Ptr |   |
-   |   |  - Full Flag Gen     |   |           |   |  - Empty Flag Gen    |   |
-   |   +----------+-----------+   |           |   +----------+-----------+   |
-   |              |               |           |              |               |
-   |       write_ptr_gray         |           |        read_ptr_gray         |
-   |              |               |           |              |               |
-   +--------------|---------------+           +--------------|---------------+
-                  |      +---------------------+             |
-                  |      | 2-FF Synchronizer   |<------------+
-                  +----->| (to write_clk)      |
-                         +----------+----------+
-                                    |
-                          read_ptr_gray_sync
-                                    v
-                         +---------------------+
-                         | 2-FF Synchronizer   |<------------+ (write_ptr_gray)
-                         | (to read_clk)       |
-                         +----------+----------+
-                                    |
-                          write_ptr_gray_sync
-                                    v
-               +--------------------------------------------+
-               |                FIFO MEMORY                 |
-               |  - Dual-port RAM array                     |
-               |  - Synchronous Write / Asynchronous Read   |
-               +--------------------------------------------+
-
+<img width="1141" height="623" alt="image" src="https://github.com/user-attachments/assets/7d17ee5f-875b-4cd8-86f0-26dbdc02cd0a" />
+credits : vlsiverify.com
